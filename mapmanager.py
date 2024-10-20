@@ -37,6 +37,26 @@ class Mapmanager:
 
         self.block.setTag("at", str(position))
         self.block.reparentTo(self.land)
+
+    def buildBlock(self, pos):
+        """Ставимо блок з урахуванням гравітації:"""
+        x, y, z = pos
+        new = self.findHighestEmpty(pos)
+        if new[2] <= z + 1:
+            self.addBlock(new)
+
+    def delBlockFrom(self, position):
+        x, y, z = self.findHighestEmpty(position)
+        pos = x, y, z - 1
+        for block in self.findBlocks(pos):
+            block.removeNode()
+
+    
+    def delBlock(self, position):
+        """видаляє блоки у зазначеній позиції"""
+        blocks = self.findBlocks(position)
+        for block in blocks:
+            block.removeNode()
     
     def findBlocks(self, pos):
         return self.land.findAllMatches("=at=" + str(pos))
@@ -47,6 +67,13 @@ class Mapmanager:
             return False
         else:
             return True
+        
+    def findHighestEmpty(self, pos):  ##
+        x, y, z = pos
+        z = 1
+        while not self.isEmpty((x, y, z)):
+            z += 1
+        return (x, y, z)
 
     def loadLand(self, filename):
         with open(filename) as file:

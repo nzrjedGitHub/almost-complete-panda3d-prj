@@ -15,6 +15,10 @@ key_turn_left = "n"  # поворот камери праворуч (а світ
 key_turn_right = "m"  # поворот камери ліворуч (а світу – праворуч)
 
 
+key_build = "b"  # побудувати блок перед собою
+key_destroy = "v"  # зруйнувати блок перед собою
+
+
 
 
 
@@ -29,6 +33,22 @@ class Hero:
         self.hero.reparentTo(render)
         self.cameraBind()
         self.accept_events()
+    
+    def build(self):
+        angle = self.hero.getH() % 360
+        pos = self.look_at(angle)
+        if self.mode:
+            self.land.addBlock(pos)
+        else:
+            self.land.buildBlock(pos)
+
+    def destroy(self):
+        angle = self.hero.getH() % 360
+        pos = self.look_at(angle)
+        if self.mode:
+            self.land.delBlock(pos)
+        else:
+            self.land.delBlockFrom(pos)
 
     def cameraBind(self):
         base.disableMouse()
@@ -63,6 +83,20 @@ class Hero:
             self.just_move(angle)
         else:
           self.try_move(angle)
+    
+    def try_move(self, angle):
+        """переміщається, якщо може"""
+        pos = self.look_at(angle)
+        if self.land.isEmpty(pos):
+            # маємо вільно. Можливо, треба впасти вниз:
+            pos = self.land.findHighestEmpty(pos)
+            self.hero.setPos(pos)
+        else:
+            # маємо зайнято. Якщо вийде, заберемося на цей блок:
+            pos = pos[0], pos[1], pos[2] + 1
+            if self.land.isEmpty(pos):
+                self.hero.setPos(pos)
+                # не вийде забратися - стоїмо на місці
 
     def just_move(self, angle):
        '''переміщається у потрібні координати у будь-якому випадку'''
@@ -110,6 +144,9 @@ class Hero:
         base.accept(key_up + '-repeat', self.up)
         base.accept(key_down, self.down)
         base.accept(key_down + '-repeat', self.down)
+
+        base.accept(key_build, self.build)
+        base.accept(key_destroy, self.destroy)
 
 
 
